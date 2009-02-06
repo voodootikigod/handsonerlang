@@ -8,18 +8,27 @@ start() ->
   A ! {ping, B, 0},
   ok.
 
+ping(Caller, N) ->
+  Caller ! {ping, self(), N}.
+
+pong(Caller, N) ->
+  Caller ! {pong, self(), N}.
+
 play() ->
   receive
     {ping, Caller, N} ->
       io:format("ping: ~p~n", [N]),
-      Caller ! {pong, self(), N + 1},
+      pong(Caller, N + 1),
       play();
     {pong, Caller, N} when N =< 50 ->
       io:format("pong: ~p~n", [N]),
-      Caller ! {ping, self(), N + 1},
+      pong(Caller, N + 1),
       play();
-    {pong, _, _} ->
+    {pong, Caller, _} ->
+      Caller ! stop,
       io:format("done!~n");
+    stop ->
+      ok;
     Unknown ->
       io:format("unknown message: ~p~n", Unknown)
   end.
