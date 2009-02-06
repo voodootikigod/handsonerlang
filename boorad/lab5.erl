@@ -12,7 +12,7 @@
 -define(SERVER, ?MODULE).
 
 %% API
--export([start_link/0, add_value/2, find_value/1, remove_value/1]).
+-export([start_link/0, add_value/2, find_value/1, remove_value/1, crash/0]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
@@ -38,6 +38,8 @@ find_value(Name) ->
 remove_value(Name) ->
   gen_server:call(?SERVER, {remove_value, Name}).
 
+crash() ->
+  gen_server:call(?SERVER, {crash}).
 
 %%====================================================================
 %% gen_server callbacks
@@ -79,6 +81,9 @@ handle_call({find_value, Name}, _From, State) ->
 handle_call({remove_value, Name}, _From, State) ->
   NewState = dict:erase(Name, State),
   {reply, removed, NewState};
+
+handle_call({crash}, _From, _State) ->
+  exit({error, crashing});
 
 handle_call(_Request, _From, State) ->
   {reply, ignored, State}.
