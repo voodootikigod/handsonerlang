@@ -7,11 +7,11 @@
 -export([start/1, call/2]).
 
 call(Server, Message) ->
-  Server ! {self(), Message},
+  global:send(Server, {self(), Message}),
   receive
     Reply ->
       Reply
-  after 100 ->
+    after 100 ->
       fail
   end.
 
