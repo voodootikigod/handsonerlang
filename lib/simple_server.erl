@@ -11,6 +11,8 @@ call(Server, Message) ->
   receive
     Reply ->
       Reply
+    after 100 ->
+      fail
   end.
 
 start(CallbackModule) when is_atom(CallbackModule)->

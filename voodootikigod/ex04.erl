@@ -1,11 +1,11 @@
 -module(ex04).
 -define(RECV, 'porn@idmbp_recv').
--compile(export_all)
+-export([on_init/0, on_message/2, on_terminate/0, start/0, send_message/2, stop/1]).
 
 
 
 % API Functions
-on_init()       ->
+on_init()     ->
   register_client().
   
 on_message(Message, State)    ->
@@ -25,15 +25,28 @@ register_client() ->
   		case global:whereis_name(?RECV) of 
   			undefined ->
   				Pid = self(),
-  				global:register_name(?RECV, Pid);
-  				{ok, []}
-  			_ ->
+  				global:register_name(?RECV, Pid),
+  				{ok, []};
+  			Oops ->
   				{error, "Already registered"}
   		end
   	end).
   
 process_message(Message, State) ->
-  {chat_msg, From, Msg} ->
-    io:format("Message from ~p: ~p~n",[From,string:strip(Msg, both, $\n)]),
-  Fail  ->
-    io:format("STFU: ~p~n", [Fail]).
+  case Message of
+    {chat_msg, From, Msg} ->
+      io:format("Message from ~p: ~p~n",[From,string:strip(Msg, both, $\n)]),
+      {reply, ok, State};
+    Fail  ->
+      io:format("STFU: ~p~n", [Fail]),
+      stop
+  end.
+  
+send_message(Server, Message) ->
+  Pid = global:whereis_name(Server),
+  simple_server:call(Pid, Message).
+  
+stop(Server)  ->
+  Pid = global:whereis_name(Server),
+  simple_server:call(Pid, stop).
+  
