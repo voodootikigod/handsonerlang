@@ -9,9 +9,12 @@ on_init() ->
   global:register_name(boorad@boorad_recv, self()),
   {ok, []}.
 
-on_message(Message, State) ->
+on_message({chat_msg, Message}, State) ->
   io:format("~p~n", [Message]),
-  {reply, ok, State}.
+  {reply, ok, State};
+
+on_message(stop, _State) ->
+  stop.
 
 on_terminate() ->
   toast.
@@ -19,7 +22,7 @@ on_terminate() ->
 
 send_message(Server, Message) ->
   ServerPid = global:whereis_name(Server),
-  simple_server:call(ServerPid, Message).
+  simple_server:call(ServerPid, {chat_msg, Message}).
 
 stop(Server) ->
   send_message(Server, stop).
